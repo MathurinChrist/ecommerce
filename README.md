@@ -10,7 +10,7 @@ cd ecommerce
 
 ## Installation Locale (Développement)
 
-### Option A : Via Docker Compose (Recommandé)
+### Option A : Via Docker Compose 
 Cette méthode est la plus simple car elle lance automatiquement les microservices, les bases de données et le frontend en une seule commande.
 ```bash
 docker compose up --build
