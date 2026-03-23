@@ -1,0 +1,97 @@
+version: "3.8"
+
+services:
+  auth-db:
+    image: mongo:4.4
+    networks:
+      - e-commerce-net
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  auth-service:
+    image: auth-service:stable
+    build:
+      context: ./services/auth-service
+      target: production
+    networks:
+      - e-commerce-net
+    environment:
+      - PORT=3001
+      - MONGODB_URI=mongodb://auth-db:27017/auth_db
+    secrets:
+      - jwt_secret
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  product-db:
+    image: mongo:4.4
+    networks:
+      - e-commerce-net
+    deploy:
+      replicas: 1
+
+  product-service:
+    image: product-service:stable
+    build:
+      context: ./services/product-service
+      target: production
+    networks:
+      - e-commerce-net
+    environment:
+      - PORT=3000
+      - MONGODB_URI=mongodb://product-db:27017/product_db
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  order-db:
+    image: mongo:4.4
+    networks:
+      - e-commerce-net
+    deploy:
+      replicas: 1
+
+  order-service:
+    image: order-service:stable
+    build:
+      context: ./services/order-service
+      target: production
+    networks:
+      - e-commerce-net
+    environment:
+      - PORT=3002
+      - MONGODB_URI=mongodb://order-db:27017/order_db
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  frontend:
+    image: frontend:stable
+    build:
+      context: ./frontend
+      target: production
+    ports:
+      - "8081:80"
+    networks:
+      - e-commerce-net
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+networks:
+  e-commerce-net:
+    driver: overlay
+
+secrets:
+  jwt_secret:
+    external: true
